@@ -1,15 +1,20 @@
 # 1. SETUP ----
+
 ## Set working directory ----
+
+
 
 ## Load libraries ----
 
-# 2. DATA PROCESSING ----
 
 ## Read in data ----
+## This will work if your working directory is set correctly
+df <- load("df_combined.rda")
 
-## Process data ----
 
-# 3. FIT MODEL ----
+# 2. MODELING ----
+
+## Set Seed ----
 
 ## Split dataset ----
 
@@ -27,3 +32,4 @@
 
 ## Feature importance plot from random forest model ----
 
+## Boxplot of important features ----
