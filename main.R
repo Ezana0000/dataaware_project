@@ -17,11 +17,16 @@ library(tidyverse)
 ## This will work if your working directory is set correctly
 df <- load("df_combined.rda")
 
+# Drop the column named "column_to_drop"
+df_combined <- subset(df_combined, select = -person)
+
+# Print the updated data frame
+print(df_combined)
+
 
 # 2. MODELING ----
 
 ##
-df <- na.omit(df)
 print(df_combined)
 
 # Check data types of columns before conversion
@@ -81,27 +86,44 @@ print(mtry)
 print(best.m)
 
 ## Tune model ----
-rf_res_df <-
-  data.frame(
-    TRAINING_ERROR = rf_model$err.rate[,1],
-    ITERATION = c(1:5000)
-  ) %>%
-  mutate(MIN = TRAINING_ERROR == min(TRAINING_ERROR))
+# Fit the random forest model with keep.forest = TRUE
+# Initialize an empty vector to store OOB errors
+rf_obb_errors <- c()
 
+# Fit the random forest model with keep.forest = TRUE and track OOB errors
+for (i in 1:3000) {
+  rf_model <- randomForest(
+    x = train_x,
+    y = train_y,
+    mtry = 7,
+    importance = TRUE,
+    ntree = i,
+    keep.forest = TRUE,
+    err.rate = TRUE
+  )
+  # Append the OOB error to the vector
+  rf_oob_errors <- c(rf_obb_errors, rf_model$err.rate[nrow(rf_model$err.rate), 1])
+}
+
+# Create a data frame to store training errors and iterations
+rf_res_df <- data.frame(TRAINING_ERROR = rf_oob_errors, ITERATION = 1:length(rf_oob_errors))
+
+# Find the iteration with the lowest training error
 best_nrounds <- rf_res_df %>%
-  filter(MIN) %>%
+  filter(TRAINING_ERROR == min(TRAINING_ERROR)) %>%
   pull(ITERATION)
 
 best_nrounds
+
 
 ## Fit final model ----
 rf_final_model <-
   randomForest(
     x = train_x,
     y = train_y,
-    mtry = 22,
+    mtry = 7,
     importance = TRUE,
-    ntree = 3000
+    ntree = 1000
   )
 
 rf_final_model
