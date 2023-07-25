@@ -104,13 +104,18 @@ prob_rf <- pred_rf <- actual <- rep(NA, length(users_all))
 for (i in seq_along(users_all)) {
  
   # Create a boolean mask for selecting data of the current user
-  indices_user_select <- df_combined$person == users_all[i]
+  indices_user_select <- train_x$person == users_all[i]
  
   # Train a Random Forest model using all data except for the current user's
   mod <- randomForest(
-    class ~ hour, person, xyz.mean, xyz.absolute.deviation, xyz.standard.deviation, xyz.max.deviation, xyz.PSD.1, xyz.PSD.3, xyz.PSD.6, xyz.PSD.10, azimuth.mean, azimuth.absolute.deviation, azimuth.standard.deviation, azimuth.max.deviation, pitch.mean, pitch.absolute.deviation, pitch.standard.deviation, pitch.max.deviation, roll.mean, roll.absolute.deviation, roll.standard.deviation, roll.max.deviation, id,
-    data = df_combined[-indices_user_select,],
+      x = train_x,
+      y = train_y,
+      xtest = test_x,
+      ytest = test_y,
+    # class ~ xyz.mean, xyz.absolute.deviation, xyz.standard.deviation, xyz.max.deviation, xyz.PSD.1, xyz.PSD.3, xyz.PSD.6, xyz.PSD.10, azimuth.mean, azimuth.absolute.deviation, azimuth.standard.deviation, azimuth.max.deviation, pitch.mean, roll.absolute.deviation, pitch.absolute.deviation, pitch.max.deviation, roll.standard.deviation, roll.max.deviation, roll.mean,
+    # data = df_combined,
     ntree = 1000,
+    mtry = 11,
     importance = TRUE,
     do.trace = 10
   )
@@ -118,7 +123,7 @@ for (i in seq_along(users_all)) {
  
   # Use the trained model to predict the class of the current user's data,
   # then calculate the mean probability that the predicted class is "PD"
-  prob <- mean(predict(mod, df_combined[indices_user_select,], type = "response") == "PD")
+  prob <- mean(predict(mod, df_combined[id,], type = "response") == "PD")
  
   # Create a prediction for the current user: if the calculated probability is
   # more than 0.5, it predicts "PD"; otherwise, it predicts "Control"
@@ -135,8 +140,6 @@ for (i in seq_along(users_all)) {
 # Create a DataFrame with the calculated probabilities, the predictions,
 # and the actual classes for all unique users
 data.frame(prob_rf, pred_rf, actual)
-
-
 
 
 ## Fit final model ----
@@ -159,67 +162,6 @@ rf_final_model
 
 ## Scatterplot of variables ----
 ## Feature importance plot from random forest model ----
-##
-library(caret)
-rf_features <- as.data.frame(varImp( rf_final_model))
-
-## Rename the column name to rf_imp
-colnames(rf_features) <- "rf_imp"
-
-## convert rownames to column
-rf_features$feature <- rownames(rf_features)
-
-## Selecting only relevant columns for mapping
-features <- rf_features %>% dplyr::select(c(feature, rf_imp))
-
-### Plot the feature importance
-plot <- features %>%
-  ggplot(aes(x =  rf_imp, y = feature , color = "#2E86AB")) +
-  # Creates a point for the feature importance
-  geom_point(position = position_dodge(0.5)) 
-
-print(plot)
-plot +
-  # Connecting line between 0 and the feature
-  geom_linerange(aes(xmin = 0, xmax = rf_imp),
-                 linetype = "solid",
-                 position = position_dodge(.5)) +
-  # Vertical line at 0
-  geom_vline(xintercept = 0,
-             linetype = "solid",
-             color = "grey70") +
-  # Adjust the scale if you need to based on your importance
-  scale_x_continuous(limits = c(-1, 5)) +
-  # Label the x and y axes
-  labs(x = "Importance", y = "Feature") +
-  # Make the theme pretty
-  theme_bw() +
-  theme(legend.position = "none",
-        text = element_text(family = "serif")) +
-  guides(color = guide_legend(title = NULL)) +
-  # Plot them in order of importance
-  scale_y_discrete(limits = features$feature[order(features$rf_imp, decreasing = FALSE)])
-plot +
-  # Connecting line between 0 and the feature
-  geom_linerange(aes(xmin = 0, xmax = rf_imp),
-                 linetype = "solid",
-                 position = position_dodge(.5)) +
-  # Vertical line at 0
-  geom_vline(xintercept = 0,
-             linetype = "solid",
-             color = "grey70") +
-  # Adjust the scale if you need to based on your importance
-  scale_x_continuous(limits = c(0, 1)) +
-  # Label the x and y axes
-  labs(x = "Importance", y = "Feature") +
-  # Make the theme pretty
-  theme_bw() +
-  theme(legend.position = "none",
-        text = element_text(family = "serif")) +
-  guides(color = guide_legend(title = NULL)) +
-  # Plot them in order of importance
-  scale_y_discrete(limits = features$feature[order(features$rf_imp, decreasing = FALSE)])
-
 ## Boxplot of important features ----
 
 
