@@ -2,16 +2,11 @@
 
 ## Set working directory ----
 getwd()
+setwd("/Users/ezanaenquobahrie/Desktop/dataaware_project")
 ## Load libraries ----
-install.packages("randomForest")
-install.packages("ggplot2")
-
 library(randomForest)
 library(ggplot2)
 library(tidyverse)
-
-
-
 
 ## Read in data ----
 ## This will work if your working directory is set correctly
@@ -73,6 +68,7 @@ print(df_combined)
 
 load("RF_MODEL.RData")
 
+rf_final_model
 # 4. FIGURES ---- 
 library(caret)
 rf_features <- as.data.frame(varImp( rf_final_model))
@@ -128,9 +124,9 @@ features <- rf_features %>% dplyr::select(c(feature, rf_imp))
 
 ### Plot the feature importance
 plot <- features %>%
-  ggplot(aes(x =  rf_imp, y = feature , color = "#2E86AB")) +
+  ggplot(aes(x =  rf_imp, y = feature , color = "red")) +
   ### Creates a point for the feature importance
-  geom_point(position = position_dodge(1)) 
+  geom_boxplot(position = position_dodge(1)) 
 
 print(plot)
 
@@ -144,7 +140,7 @@ plot +
              linetype = "solid",
              color = "red") +
   ### Adjust the scale if you need to based on your importance
-  scale_x_continuous(limits = c(-50, 200)) +
+  scale_x_continuous(limits = c(0, 120)) +
   ### Label the x and y axes
   labs(x = "Importance", y = "Feature") +
   ### Make the theme pretty
@@ -155,5 +151,26 @@ plot +
   ### Plot them in order of importance
   scale_y_discrete(limits = features$feature[order(features$rf_imp, decreasing = FALSE)])
 ## Boxplot of important features ----
+# Load required libraries
+#library(ggplot2)
+#library(dplyr)
 
+# Assuming you have a data frame named 'features' with columns 'rf_imp' and 'feature'
 
+# Create the bar plot
+plot <- features %>%
+  ggplot(aes(x = reorder(feature, rf_imp), y = rf_imp, fill = "lightblue")) +
+  geom_bar(stat = "identity") +
+  # geom_segment(aes(xend = reorder(feature, rf_imp), yend = 0), linetype = "solid", color = "black") +
+  geom_hline(yintercept = 0, linetype = "solid", color = "lightblue") +
+  coord_flip() +
+  scale_fill_manual(values = "lightblue") +
+  labs(x = "Feature", y = "Importance") +
+  theme_bw() +
+  theme(legend.position = "none",
+        text = element_text(family = "serif"))
+
+# Print the bar plot
+print(plot)
+
+##
