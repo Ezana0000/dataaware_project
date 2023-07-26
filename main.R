@@ -177,3 +177,28 @@ print(plot)
 ##
 
 
+
+# Load required libraries
+library(pheatmap)
+
+# Assuming you have a data frame named 'df_combined' with the relevant columns
+# Replace 'xyz.mean', 'roll.mean', 'xyz.PSD.6', 'pitch.max.deviation', 'xyz.PSD.1', 'azimuth.mean', 'xyz.PSD.3', 'xyz.PSD.10'
+# with the actual column names you want to include in the heatmap
+
+# Select the relevant columns for the heatmap
+selected_columns <- c("xyz.mean", "roll.mean", "xyz.PSD.6", "pitch.max.deviation",
+                      "xyz.PSD.1", "azimuth.mean", "xyz.PSD.3", "xyz.PSD.10")
+
+# Subset the data frame with the selected columns
+selected_data <- df_combined[, selected_columns]
+
+# Compute the correlation matrix
+correlation_matrix <- cor(selected_data, use = "pairwise.complete.obs")
+
+# Create the heatmap
+pheatmap(correlation_matrix, 
+         fontsize_row = 8, fontsize_col = 8, cellwidth = 25, cellheight = 15,
+         color = colorRampPalette(c("blue", "white", "red"))(100),
+         main = "Heatmap of Pairwise Correlation", 
+         fontsize = 12, angle_col = 45)
+
